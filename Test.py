@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import requests
 import json
+import pymongo
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, LabelBinarizer, OrdinalEncoder, OneHotEncoder
 from sklearn import linear_model
@@ -81,6 +82,11 @@ st.write(df)
 st.subheader('On veut trouver lhauteur de cette arbre')
 st.write(dfinput)
 Dfmain= df[['espece','hauteurenm','arrondissement','stadedeveloppement','circonferenceencm']].sort_values(by = ['arrondissement'])
+client = pymongo.MongoClient("mongodb+srv://krw:krw@cluster0.t2qz0z5.mongodb.net/?retryWrites=true&w=majority")
+## POUR INSERER LA DATA BASE UNE AUTRE FOIS 
+# data = Dfmain.to_dict(orient="records")
+db = client["Machinelearning"]
+# db.iris.insert_many(data)
 val1 = Dfmain['espece'].value_counts()
 val2 = Dfmain['arrondissement'].value_counts()
 val3 = Dfmain['stadedeveloppement'].value_counts()
@@ -96,10 +102,22 @@ regr.fit ( x_train , y_train )
 array = dfinput.to_numpy().tolist()
 arrayencoded = encoder.transform(array)
 predictedCO2 = regr.predict(arrayencoded)
-#print(arrayencoded)
+input = pd.DataFrame(dfinput)
+# "hauteurenm"
+pr = predictedCO2.tolist()
+# predictedCO2 = pd.DataFrame(predictedCO2)
+input['hauteurenm'] = pr
+dataoutput= input.to_dict(orient="records")
+db.iris.insert_many(dataoutput)
+#print(predictedCO2)
+# output = input.append(predictedCO2)
+
 #print(type(dfinput.to_numpy().tolist()))
 st.subheader('Le resultat de la prediction')
 st.write('L HAUTEUR EST ',predictedCO2)
+
+st.subheader('NOTRE Nouvelle arbre output est:')
+st.write(input)
 #==========================================
 st.subheader('LISTES DES CHARTS')
 st.write("L'hauteur en comparant par circonferance de l'arbre")
